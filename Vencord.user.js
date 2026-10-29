@@ -10,8 +10,8 @@
 // @match           *://*.discord.com/*
 // @grant           GM_xmlhttpRequest
 // @connect        translate-pa.googleapis.com
-// @downloadURL    https://raw.githubusercontent.com/2RDeX/Vencord-AdGuard/main/Vencord.user.js
-// @updateURL      https://raw.githubusercontent.com/2RDeX/Vencord-AdGuard/main/Vencord.user.js
+// @downloadURL    https://raw.githubusercontent.com/2RDex/Vencord-AdGuard/main/Vencord.user.js
+// @updateURL      https://raw.githubusercontent.com/2RDex/Vencord-AdGuard/main/Vencord.user.js
 // @grant           unsafeWindow
 // @run-at          document-start
 // @compatible      chrome Chrome + Tampermonkey or Violentmonkey
