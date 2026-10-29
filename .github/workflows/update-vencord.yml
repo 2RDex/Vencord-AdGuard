@@ -61,7 +61,7 @@ jobs:
 
           url = (
               "https://raw.githubusercontent.com/"
-              "2RDeX/Vencord-AdGuard/main/Vencord.user.js"
+              "2RDex/Vencord-AdGuard/main/Vencord.user.js"
           )
 
           additions = (
