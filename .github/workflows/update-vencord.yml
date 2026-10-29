@@ -1,0 +1,103 @@
+
+name: Update Vencord AdGuard Userscript
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-vencord:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download latest Vencord build
+        run: |
+          curl --fail --location --retry 3 \
+            https://raw.githubusercontent.com/Vencord/builds/main/Vencord.user.js \
+            --output /tmp/Vencord.user.js
+
+      - name: Patch Userscript metadata
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          source = Path("/tmp/Vencord.user.js").read_text(
+              encoding="utf-8"
+          )
+
+          marker = "// ==/UserScript=="
+          header, found, body = source.partition(marker)
+
+          if not found or "// ==UserScript==" not in header:
+              raise SystemExit("Invalid Vencord Userscript header")
+
+          # Remove old copies of the custom metadata.
+          header = re.sub(
+              r"(?m)^// @connect[ \t]+translate-pa\.googleapis\.com[ \t]*\r?\n",
+              "",
+              header,
+          )
+          header = re.sub(
+              r"(?m)^// @(?:downloadURL|updateURL)[ \t]+.*\r?\n",
+              "",
+              header,
+          )
+
+          grant = re.search(
+              r"(?m)^// @grant[ \t]+GM_xmlhttpRequest[ \t]*$",
+              header,
+          )
+
+          if not grant:
+              raise SystemExit("GM_xmlhttpRequest grant not found")
+
+          url = (
+              "https://raw.githubusercontent.com/"
+              "2RDeX/Vencord-AdGuard/main/Vencord.user.js"
+          )
+
+          additions = (
+              grant.group(0)
+              + "\n// @connect        translate-pa.googleapis.com"
+              + f"\n// @downloadURL    {url}"
+              + f"\n// @updateURL      {url}"
+          )
+
+          header = (
+              header[:grant.start()]
+              + additions
+              + header[grant.end():]
+          )
+
+          output = header + marker + body
+          Path("Vencord.user.js").write_text(
+              output,
+              encoding="utf-8",
+              newline="\n",
+          )
+
+          print("Patched Vencord.user.js successfully")
+          PY
+
+      - name: Commit and push changes
+        run: |
+          if git diff --quiet -- Vencord.user.js; then
+            echo "Vencord is already up to date."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add Vencord.user.js
+          git commit -m "Update Vencord Userscript for AdGuard"
+          git push
